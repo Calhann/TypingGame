@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yazma Oyunu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family:Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, #ff0000, #00c3ff);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-container {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 1400px;
+            width: 90%;
+            transition: all 0.3s ease;
+        }
+
+        .game-container.flash {
+            background: rgba(100, 0, 0, 0.8);
+            animation: flashEffect 0.5s ease-out;
+        }
+
+        @keyframes flashEffect {
+            0% { background: rgba(100, 0, 0, 0.8); }
+            100% { background: rgba(0, 0, 0, 0.8); }
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #d400ff, #a13dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 0px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .lives {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .score {
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+
+        .word-count {
+            color: #45b7d1;
+            font-weight: bold;
+        }
+
+        .next-word {
+            color: #96ceb4;
+            font-size: 0.9em;
+        }
+
+        .word-display {
+            margin: 40px 0;
+            font-size: 3em;
+            letter-spacing: 15px;
+            font-weight: bold;
+            min-height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .letter {
+            transition: all 0.3s ease;
+            margin: 0 5px;
+            padding: 10px;
+            padding-right: 0px;
+            padding-left: 13px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .letter.typed {
+            color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.2);
+            transform: scale(1.1);
+        }
+
+        .letter.current {
+            color: #ffd93d;
+            background: rgba(255, 217, 61, 0.3);
+            animation: pulse 1s infinite;
+            transform: scale(1.2);
+        }
+
+        .letter.current.wrong {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.3);
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .letter.untyped {
+            color: #ffffff;
+            opacity: 0.7;
+        }
+
+        .letter.space {
+            min-width: 20px;
+            background: rgba(201, 201, 201, 0.3);
+            border: 2px solid rgba(167, 167, 167, 0.6);
+            height: 20px;
+            margin: 0 10px;
+            border-radius: 5px;
+        }
+
+        .letter.space.typed {
+            background: rgba(78, 205, 196, 0.3);
+            border: 2px solid rgba(78, 205, 196, 0.6);
+        }
+
+        .letter.space::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.6em;
+            opacity: 0.5;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0) scale(1.2); }
+            25% { transform: translateX(-10px) scale(1.2); }
+            75% { transform: translateX(10px) scale(1.2); }
+        }
+
+        .time-bar-container {
+            margin: 30px 0;
+        }
+
+        .time-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .time-fill {
+            height: 100%;
+            transition: width 0.1s linear, background-color 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .time-text {
+            margin-top: 10px;
+            font-size: 1.2em;
+        }
+
+        .instructions {
+            margin: 30px 0;
+            font-size: 1.2em;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .game-over {
+            margin: 30px 0;
+        }
+
+        .game-over h2 {
+            color: #ff6b6b;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            animation: gameOverPulse 2s infinite;
+        }
+
+        @keyframes gameOverPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        .final-stats {
+            font-size: 1.3em;
+            color: #4ecdc4;
+            margin-bottom: 20px;
+        }
+
+        .restart-btn {
+            background: linear-gradient(45deg, #fa6bff, #613dff);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(172, 72, 255, 0.3);
+        }
+
+        .controls {
+            margin-top: 30px;
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+
+        .space-info {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #96ceb4;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .word-display {
+                font-size: 2em;
+                letter-spacing: 8px;
+            }
+            
+            .stats {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <h1>YAZMA OYUNU</h1>
+        
+        <div class="stats">
+            <div class="stat-item lives">
+                Canlar: <span id="lives">3</span> 
+            </div>
+            <div class="stat-item score">
+                Puan: <span id="score">0</span> 
+            </div>
+            <div class="stat-item word-count">
+                Kelime: <span id="wordCount">1</span> 
+            </div>
+            <div class="stat-item next-word">
+                Sonraki: <span id="nextWord">-</span> 
+            </div>
+        </div>
+
+        <div class="word-display" id="wordDisplay"></div>
+
+        <div class="time-bar-container" id="timeBarContainer">
+            <div class="time-bar">
+                <div class="time-fill" id="timeFill"></div>
+            </div>
+            <div class="time-text">
+                Süre: <span id="timeLeft">10.0</span>s
+            </div>
+        </div>
+
+        <div class="instructions" id="instructions">
+            Yazmaya başlamak için ilk harfi yazın! 
+        </div>
+
+        <div class="space-info">
+             Boşluklar otomatik olarak atlanır
+        </div>
+
+        <div class="game-over" id="gameOver" style="display: none;">
+            <h2>OYUN BİTTİ!</h2>
+            <div class="final-stats">
+                Toplam Kelime: <span id="finalWordCount">0</span>
+            </div>
+            <button class="restart-btn" onclick="startNewGame()">
+                 Yeni Oyun
+            </button>
+        </div>
+
+        <div class="controls">
+            ESC: Çıkış | SPACE: Devam/Yeniden Başla
+        </div>
+    </div>
+
+    <script>
+        class TypingGame {
+            constructor() {
+                this.sessionId = 'user_' + Math.random().toString(36).substr(2, 9);
+                this.gameState = null;
+                this.timeInterval = null;
+                this.currentTime = 0;
+                this.flashTimeout = null;
+                this.wrongLetterTimeout = null;
+                this.bindEvents();
+                this.startNewGame();
+            }
+
+            async startNewGame() {
+                try {
+                    const response = await fetch('/api/new_game', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({session_id: this.sessionId})
+                    });
+                    
+                    this.gameState = await response.json();
+                    this.currentTime = this.gameState.time_limit;
+                    this.updateDisplay();
+                    this.startTimer();
+                } catch (error) {
+                    console.error('Yeni oyun başlatılamadı:', error);
+                }
+            }
+
+            async handleKeypress(key) {
+                if (!this.gameState || this.gameState.game_over) return;
+
+                try {
+                    const response = await fetch('/api/keypress', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            session_id: this.sessionId,
+                            key: key
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    this.gameState = result.game_state;
+                    
+                    if (result.keypress_result.success && !result.keypress_result.correct) {
+                        this.showWrongLetterEffect();
+                    }
+                    
+                    this.updateDisplay();
+                    
+                    if (this.gameState.game_over) {
+                        this.stopTimer();
+                    }
+                    
+                } catch (error) {
+                    console.error('Tuş işlenemedi:', error);
+                }
+            }
+
+            async nextWord() {
+                if (!this.gameState || !this.gameState.word_completed) return;
+
+                try {
+                    const response = await fetch('/api/next_word', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({session_id: this.sessionId})
+                    });
+                    
+                    this.gameState = await response.json();
+                    this.currentTime = this.gameState.time_limit;
+                    this.updateDisplay();
+                    this.startTimer();
+                } catch (error) {
+                    console.error('Sonraki kelimeye geçilemedi:', error);
+                }
+            }
+
+            showWrongLetterEffect() {
+                const container = document.getElementById('gameContainer');
+                container.classList.add('flash');
+                
+                if (this.flashTimeout) {
+                    clearTimeout(this.flashTimeout);
+                }
+                
+                this.flashTimeout = setTimeout(() => {
+                    container.classList.remove('flash');
+                }, 500);
+            }
+
+            startTimer() {
+                this.stopTimer();
+                
+                this.timeInterval = setInterval(() => {
+                    this.currentTime -= 0.1;
+                    
+                    if (this.currentTime <= 0) {
+                        this.currentTime = 0;
+                        this.stopTimer();
+                        this.timeUp();
+                    }
+                    
+                    this.updateTimeDisplay();
+                }, 100);
+            }
+
+            stopTimer() {
+                if (this.timeInterval) {
+                    clearInterval(this.timeInterval);
+                    this.timeInterval = null;
+                }
+            }
+
+            async timeUp() {
+                try {
+                    const response = await fetch('/api/time_up', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({session_id: this.sessionId})
+                    });
+                    
+                    this.gameState = await response.json();
+                    this.updateDisplay();
+                } catch (error) {
+                    console.error('Zaman doldu işlemi başarısız:', error);
+                }
+            }
+
+            updateDisplay() {
+                if (!this.gameState) return;
+
+                document.getElementById('lives').textContent = this.gameState.lives;
+                document.getElementById('score').textContent = this.gameState.score;
+                document.getElementById('wordCount').textContent = this.gameState.word_count + 1;
+                document.getElementById('nextWord').textContent = this.gameState.next_word;
+                this.updateWordDisplay();
+                this.updateInstructions();
+
+                if (this.gameState.game_over) {
+                    document.getElementById('timeBarContainer').style.display = 'none';
+                    document.getElementById('gameOver').style.display = 'block';
+                    document.getElementById('finalWordCount').textContent = this.gameState.word_count;
+                } else {
+                    document.getElementById('timeBarContainer').style.display = 'block';
+                    document.getElementById('gameOver').style.display = 'none';
+                    this.updateTimeDisplay();
+                }
+            }
+
+            updateWordDisplay() {
+                const wordDisplay = document.getElementById('wordDisplay');
+                wordDisplay.innerHTML = '';
+                
+                const word = this.gameState.current_word;
+                
+                for (let i = 0; i < word.length; i++) {
+                    const letterSpan = document.createElement('span');
+                    const char = word[i];
+                    
+                    letterSpan.classList.add('letter');
+                    
+                    if (char === ' ') {
+                        letterSpan.classList.add('space');
+                        letterSpan.innerHTML = '&nbsp;'; 
+                    } else {
+                        letterSpan.textContent = char;
+                    }
+                    
+                    if (i < this.gameState.typed_letters.length) {
+                        letterSpan.classList.add('typed');
+                    } else if (i === this.gameState.current_index && !this.gameState.word_completed) {
+                        letterSpan.classList.add('current');
+                    } else {
+                        letterSpan.classList.add('untyped');
+                    }
+                    
+                    wordDisplay.appendChild(letterSpan);
+                }
+            }
+
+            updateTimeDisplay() {
+                if (this.gameState && !this.gameState.game_over) {
+                    const timeRatio = Math.max(0, this.currentTime / this.gameState.time_limit);
+                    const fillWidth = Math.max(0, timeRatio * 100);
+                    
+                    const timeFill = document.getElementById('timeFill');
+                    timeFill.style.width = fillWidth + '%';
+         
+                    if (timeRatio > 0.5) {
+                        timeFill.style.backgroundColor = '#4ecdc4';
+                    } else if (timeRatio > 0.25) {
+                        timeFill.style.backgroundColor = '#ffd93d';
+                    } else {
+                        timeFill.style.backgroundColor = '#ff6b6b';
+                    }
+                    
+                    document.getElementById('timeLeft').textContent = Math.max(0, this.currentTime).toFixed(1);
+                }
+            }
+
+            updateInstructions() {
+                const instructions = document.getElementById('instructions');
+                
+                if (!this.gameState.game_started) {
+                    instructions.textContent = 'Yazmaya başlayın';
+                    instructions.style.color = '#ffd93d';
+                } else if (this.gameState.word_completed) {
+                    instructions.textContent = 'Sonraki kelime için SPACE tuşuna basın';
+                    instructions.style.color = '#4ecdc4';
+                } else if (!this.gameState.game_over) {
+                    instructions.textContent = 'Sarı harfi yazın';
+                    instructions.style.color = '#ffffff';
+                }
+            }
+
+            bindEvents() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        if (confirm('Oyundan çıkmak istediğinize emin misiniz?')) {
+                            window.close();
+                        }
+                    } else if (e.key === ' ') {
+                        e.preventDefault();
+                        if (this.gameState && this.gameState.game_over) {
+                            this.startNewGame();
+                        } else if (this.gameState && this.gameState.word_completed) {
+                            this.nextWord();
+                        }
+                    } else if (e.key.length === 1 && e.key.match(/[a-zA-ZçğıöşüÇĞIİÖŞÜ]/)) {
+                        e.preventDefault();
+                        this.handleKeypress(e.key);
+                    }
+                });
+            }
+        }
+
+        let game;
+        
+        function startNewGame() {
+            if (game) {
+                game.stopTimer();
+            }
+            game = new TypingGame();
+        }
+
+        window.addEventListener('load', () => {
+            startNewGame();
+        });
+    </script>
+</body>
+</html>
